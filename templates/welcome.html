@@ -1,0 +1,43 @@
+<!-- templates/welcome.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter Your Name</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Chat App</h1>
+    <p>Please enter your name to continue:</p>
+    <form id="nameForm">
+        <input type="text" id="username" placeholder="Your Name" required>
+        <button type="submit">Enter Chat</button>
+    </form>
+    <script>
+        document.getElementById('nameForm').onsubmit = function(e) {
+            e.preventDefault();
+            var username = document.getElementById('username').value.trim();
+            if (username) {
+                // Save the username in local storage and redirect to chat page
+                localStorage.setItem('username', username);
+                window.location.href = '/chat';
+            }
+        };
+    </script>
+</body>
+</html>
