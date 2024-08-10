@@ -1,0 +1,95 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat App</title>
+    <!-- Use local Socket.IO script -->
+    <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+    <!-- Include CryptoJS from local file -->
+    <script src="{{ url_for('static', filename='js/crypto-js.min.js') }}"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chat {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+        #message {
+            width: 60%;
+        }
+        #send, #send-encrypted {
+            width: 15%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Chat App</h1>
+    <div id="chat"></div>
+    <input id="message" type="text" placeholder="Type your message here...">
+    <button id="send">Send</button>
+    <button id="send-encrypted">Send Encrypted</button>
+
+    <script>
+        var username = localStorage.getItem('username');
+        if (!username) {
+            window.location.href = '/';
+        }
+
+        var socket = io();
+
+        const secretKey = 'your-very-secure-key'; // Replace with your actual secret key
+
+        function aesEncrypt(text, key) {
+            return CryptoJS.AES.encrypt(text, key).toString();
+        }
+
+        function aesDecrypt(ciphertext, key) {
+            let bytes = CryptoJS.AES.decrypt(ciphertext, key);
+            return bytes.toString(CryptoJS.enc.Utf8);
+        }
+
+        document.getElementById('send').onclick = function() {
+            var message = document.getElementById('message').value.trim();
+            if (message) {
+                socket.emit('send_message', { name: username, message: message });
+                document.getElementById('message').value = '';
+            } else {
+                alert('Please enter a message.');
+            }
+        };
+
+        document.getElementById('send-encrypted').onclick = function() {
+            var message = document.getElementById('message').value.trim();
+            if (message) {
+                var encryptedMessage = aesEncrypt(message, secretKey);
+                socket.emit('send_encrypted_message', { name: username, message: encryptedMessage });
+                document.getElementById('message').value = '';
+            } else {
+                alert('Please enter a message.');
+            }
+        };
+
+        socket.on('receive_message', function(data) {
+            var chat = document.getElementById('chat');
+            var msg = document.createElement('div');
+            msg.textContent = `${data.name}: ${data.message}`;
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        });
+
+        socket.on('receive_encrypted_message', function(data) {
+            var chat = document.getElementById('chat');
+            var msg = document.createElement('div');
+            var decryptedMessage = aesDecrypt(data.message, secretKey);
+            msg.textContent = `${data.name}: ${decryptedMessage}`;
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        });
+    </script>
+</body>
+</html>
